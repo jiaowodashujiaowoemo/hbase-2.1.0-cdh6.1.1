@@ -10,7 +10,7 @@ HBase读写过程无需master参与，但是客户端在连接集群时，zookee
 
 # redirect RegionServers
 HBase的读写需要先拿到RS的实际地址，这里不用再管meta表在哪个RS，只需要关心如何将从meta表中拿到的regioninfo中的信息进行修改
-修改点依然是ConnectionImplementation.java，cacheLocation(0方法，该方法是缓存新发现的HRegionLocation，在此处就把端口号全部替换
+修改点依然是ConnectionImplementation.java，cacheLocation()方法，该方法是缓存新发现的HRegionLocation，在此处就把端口号全部替换
 
 # 需要的配置项
 ACTUAL_MASTER=master,16000
