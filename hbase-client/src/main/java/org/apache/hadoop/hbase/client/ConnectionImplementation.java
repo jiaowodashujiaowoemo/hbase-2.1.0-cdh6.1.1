@@ -59,10 +59,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -897,7 +894,30 @@ class ConnectionImplementation implements ClusterConnection, Closeable {
      */
     @Override
     public void cacheLocation(final TableName tableName, final RegionLocations location) {
-        metaCache.cacheLocation(tableName, location);
+        List<String> actualRSs = Arrays.asList(ReadConf.getProperty("ACTUAL_RS").split(ReadConf.getProperty("SEPERATOR")));
+        List<String> expectRSs = Arrays.asList(ReadConf.getProperty("EXPECT_RS").split(ReadConf.getProperty("SEPERATOR")));
+        Map<String, Integer> expectHostAndPort = new HashMap<>();
+
+        for (String string : expectRSs) {
+            expectHostAndPort.put(string.split(",")[0], Integer.parseInt(string.split(",")[1]));
+        }
+        HRegionLocation[] hRegionLocations=new HRegionLocation[location.size()];
+        for (int i=0;i<location.size();i++){
+            HRegionLocation loc=location.getRegionLocations()[i];
+            for (String string : actualRSs) {
+                /**
+                 * 本来的hostname是包含端口号的，这里把hostname和port分开
+                 */
+                if (loc.getServerName().getServerName().startsWith(string)) {
+                    String hostname = loc.getServerName().getServerName().split(",")[0];
+                    int port = expectHostAndPort.get(hostname);
+                    loc = new HRegionLocation(loc.getRegion(), ServerName.valueOf(hostname, port, loc.getServerName().getStartcode()), loc.getSeqNum());
+                    hRegionLocations[i]=loc;
+                }
+            }
+        }
+        RegionLocations newRegionLocations=new RegionLocations(hRegionLocations);
+        metaCache.cacheLocation(tableName, newRegionLocations);
     }
 
     /**

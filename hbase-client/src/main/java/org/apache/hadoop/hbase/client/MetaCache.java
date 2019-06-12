@@ -20,9 +20,8 @@ package org.apache.hadoop.hbase.client;
 
 import static org.apache.hadoop.hbase.util.CollectionUtils.computeIfAbsent;
 
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -156,6 +155,29 @@ public class MetaCache {
    * @param locations the new locations
    */
   public void cacheLocation(final TableName tableName, final RegionLocations locations) {
+//    List<String> actualRSs = Arrays.asList(ReadConf.getProperty("ACTUAL_RS").split(ReadConf.getProperty("SEPERATOR")));
+//    List<String> expectRSs = Arrays.asList(ReadConf.getProperty("EXPECT_RS").split(ReadConf.getProperty("SEPERATOR")));
+//    Map<String, Integer> expectHostAndPort = new HashMap<>();
+//
+//    for (String string : expectRSs) {
+//      expectHostAndPort.put(string.split(",")[0], Integer.parseInt(string.split(",")[1]));
+//    }
+//    HRegionLocation[] hRegionLocations=new HRegionLocation[locations.size()];
+//    for (int i=0;i<locations.size();i++){
+//      HRegionLocation loc=locations.getRegionLocations()[i];
+//      for (String string : actualRSs) {
+//        /**
+//         * 本来的hostname是包含端口号的，这里把hostname和port分开
+//         */
+//        if (loc.getServerName().getServerName().startsWith(string)) {
+//          String hostname = loc.getServerName().getServerName().split(",")[0];
+//          int port = expectHostAndPort.get(hostname);
+//          loc = new HRegionLocation(loc.getRegion(), ServerName.valueOf(hostname, port, loc.getServerName().getStartcode()), loc.getSeqNum());
+//          hRegionLocations[i]=loc;
+//        }
+//      }
+//    }
+//    RegionLocations newRegionLocations=new RegionLocations(hRegionLocations);
     byte [] startKey = locations.getRegionLocation().getRegion().getStartKey();
     ConcurrentMap<byte[], RegionLocations> tableLocations = getTableLocations(tableName);
     RegionLocations oldLocation = tableLocations.putIfAbsent(startKey, locations);
